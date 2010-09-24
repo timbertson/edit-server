@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<interface uri="http://gfxmonk.net/dist/0install/edit-server.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+	<name>edit-server</name>
+	<summary>a server for editing files (locally)</summary>
+	<publish mode="third-party" xmlns="http://gfxmonk.net/dist/0install"/>
+	<description>
+		An edit server written in python, compatible with TextAid and other similar
+		google chrome extensions. The purpose of which is to edit a browser's
+		textarea in an external text editor (like vim, emacs, etc...)
+
+		Runs on port 9292, or whatever you set in $EDIT_SERVER_PORT.
+		Listens on the local interface only.
+		Editor command is defaulted to `gvim -f`, but will use ARGV instead
+		if you give it any arguments.
+	</description>
+
+	<homepage>http://github.com/gfxmonk/edit-server</homepage>
+
+	<group main="edit-server">
+		<implementation id="." version="0.1">
+		</implementation>
+	</group>
+</interface>
