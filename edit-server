@@ -20,6 +20,8 @@ import subprocess
 import tempfile, time
 import os, sys, re
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
+import threading
 
 temp_has_delete=True
 open_cmd = ['gvim', '-f']
@@ -108,6 +110,9 @@ class Handler(BaseHTTPRequestHandler):
 			print "Error: ", sys.exc_info()[0]
 			self.send_error(404, "Not Found: %s" % self.path)
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+	pass
+
 def main():
 	global temp_has_delete
 	import platform
@@ -116,8 +121,9 @@ def main():
 		temp_has_delete = False;
 		print "Handling lack of delete for NamedTemporaryFile:", temp_has_delete
 	try:
-		httpserv = HTTPServer(('localhost', 9292), Handler)
+		httpserv = ThreadedHTTPServer(('localhost', 9292), Handler)
 		httpserv.table = {}
+		print 'Starting server, use <Ctrl-C> to stop'
 		httpserv.serve_forever()
 	except KeyboardInterrupt:
 		httpserv.socket.close()
