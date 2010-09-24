@@ -81,7 +81,7 @@ class Handler(BaseHTTPRequestHandler):
 				self.end_headers()
 				return
 			content_length = int(content_length)
-			body = self.rfile.read(clength)
+			body = self.rfile.read(content_length)
 			filename = self._make_temp_file(body)
 			contents = self._wait_for_edited_contents(filename)
 			self._respond(contents)

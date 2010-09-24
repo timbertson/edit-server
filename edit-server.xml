@@ -18,7 +18,14 @@
 	<homepage>http://github.com/gfxmonk/edit-server</homepage>
 
 	<group main="edit-server">
-		<implementation id="." version="0.1">
-		</implementation>
+		<implementation id="sha1new=d151a7559b9bd82000064093cf3cde0747ae2c29" released="2010-09-24" version="0.1">
+		
+    <manifest-digest sha256="fae28c511aabccb8b41cddcab6b8b478011b3289a103f375e08cb59cef6079ed"/>
+    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.tgz" size="1744"/>
+  </implementation>
+		<implementation id="sha1new=77b7e37f3ee250f226af3dcdfcdefc9a601ae460" released="2010-09-24" version="0.1.1">
+    <manifest-digest sha256="13a6afec08e093bfd89c9f7c591d6dac57df7f5f36c06b275fc22e3baf2d4471"/>
+    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.1.tgz" size="1744"/>
+  </implementation>
 	</group>
 </interface>
