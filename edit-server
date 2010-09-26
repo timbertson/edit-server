@@ -24,9 +24,11 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import threading
 import logging
+import time
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s [%(threadName)s@%(asctime)s]")
 
 open_cmd = ['gvim', '-f']
+delay_in_minutes = 5
 
 class HttpError(RuntimeError):
 	pass
@@ -73,6 +75,17 @@ class Handler(BaseHTTPRequestHandler):
 		self.end_headers()
 		self.wfile.write(contents)
 
+	def _delayed_remove(self, filename):
+		def delayed_remove():
+			logging.debug("sleeping %s mins" % (delay_in_minutes,))
+			time.sleep(delay_in_minutes * 60)
+			logging.debug("removing file: %s" % (filename,))
+			try:
+				os.unlink(filename)
+			except :
+				logging.error("Unable to unlink: %s" % (filename, ))
+		threading.Thread(target=delayed_remove).start()
+
 	def do_POST(self):
 		try:
 			content_length = self.headers.getheader('content-length')
@@ -85,23 +98,22 @@ class Handler(BaseHTTPRequestHandler):
 			filename = self._make_temp_file(body)
 			contents = self._wait_for_edited_contents(filename)
 			self._respond(contents)
-			try:
-				os.unlink(filename)
-			except :
-				logging.error("Unable to unlink: %s" % (filename, ))
-
+			self._delayed_remove(filename)
 		except HttpError, e:
 			self.send_error(*e.args)
 		except Exception, e:
 			logging.error("Error: %s" % (e,))
 			self.send_error(404, "Not Found: %s" % self.path)
+		logging.debug("POST complete")
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	pass
 
 def main():
+	global delay_in_minutes
 	try:
-		port = os.environ.get('EDIT_SERVER_PORT') or 9292
+		port = int(os.environ.get('EDIT_SERVER_PORT', 9292))
+		delay_in_minutes = float(os.environ.get('EDIT_SERVER_DELAY', 5))
 		httpserv = ThreadedHTTPServer(('localhost', int(port)), Handler)
 		httpserv.table = {}
 		logging.info('edit-server started on port %s' % (port,))

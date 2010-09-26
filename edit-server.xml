@@ -11,6 +11,8 @@
 
 		Runs on port 9292, or whatever you set in $EDIT_SERVER_PORT.
 		Listens on the local interface only.
+		Deletes files after $EDIT_SERVER_DELAY minutes (defaults 5 to give you a chance
+		to recover from failures, set to 0 if you're paranoid).
 		Editor command is defaulted to `gvim -f`, but will use ARGV instead
 		if you give it any arguments.
 	</description>
@@ -26,6 +28,10 @@
 		<implementation id="sha1new=77b7e37f3ee250f226af3dcdfcdefc9a601ae460" released="2010-09-24" version="0.1.1">
     <manifest-digest sha256="13a6afec08e093bfd89c9f7c591d6dac57df7f5f36c06b275fc22e3baf2d4471"/>
     <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.1.tgz" size="1744"/>
+  </implementation>
+		<implementation id="sha1new=19613f59b7b196896a9c3356ac1f0101f19694b5" released="2010-09-26" version="0.1.2">
+    <manifest-digest sha256="3f0c1bbe91fec36fa961f2dc948499e10e4c39cf4a959634a304eb4c7e82bc60"/>
+    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.2.tgz" size="1887"/>
   </implementation>
 	</group>
 </interface>
