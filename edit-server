@@ -29,6 +29,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s [%(t
 
 open_cmd = ['gvim', '-f']
 delay_in_minutes = 5
+os.environ['FROM_EDIT_SERVER'] = 'true'
 
 class HttpError(RuntimeError):
 	pass
@@ -84,7 +85,9 @@ class Handler(BaseHTTPRequestHandler):
 				os.unlink(filename)
 			except :
 				logging.error("Unable to unlink: %s" % (filename, ))
-		threading.Thread(target=delayed_remove).start()
+		thread = threading.Thread(target=delayed_remove)
+		thread.daemon = True
+		thread.start()
 
 	def do_POST(self):
 		try:
