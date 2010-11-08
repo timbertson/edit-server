@@ -1,9 +1,9 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <?xml-stylesheet type='text/xsl' href='interface.xsl'?>
-<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" uri="http://gfxmonk.net/dist/0install/edit-server.xml">
+<interface uri="http://gfxmonk.net/dist/0install/edit-server.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
 	<name>edit-server</name>
 	<summary>a server for editing files (locally)</summary>
-	<publish xmlns="http://gfxmonk.net/dist/0install" mode="third-party"/>
+	<publish mode="third-party" xmlns="http://gfxmonk.net/dist/0install"/>
 	<description>
 An edit server written in python, compatible with TextAid and other similar
 google chrome extensions. The purpose of which is to edit a browser's
@@ -22,11 +22,11 @@ first time you save the file in your editor, your version is too old. You can
 use --no-incremental to revert to the old behaviour.
 
 [Tech details]
-The incremental editing uses two HTTP headers, "x-file" and "x-open".
-"x-open: true" means the editor has not finished, and another request should be made
-immediately. "x-file: FILENAME" (returned from the server) provides the value to be
-provided as the "x-file" request header for the subsequent request.
-if "x-file" is not "true", the editing has finished and no more requests should be
+The incremental editing uses two HTTP headers, &quot;x-file&quot; and &quot;x-open&quot;.
+&quot;x-open: true&quot; means the editor has not finished, and another request should be made
+immediately. &quot;x-file: FILENAME&quot; (returned from the server) provides the value to be
+provided as the &quot;x-file&quot; request header for the subsequent request.
+if &quot;x-file&quot; is not &quot;true&quot;, the editing has finished and no more requests should be
 made.
 	</description>
 	<homepage>http://github.com/gfxmonk/edit-server</homepage>
@@ -47,5 +47,9 @@ made.
 			<manifest-digest sha256="213634352f1a69782840d82205372c27163e8212642eca9013898f9dda77a841"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.3.tgz" size="1922"/>
 		</implementation>
+		<implementation id="sha1new=18fb1330ffb31fe5deb75972cec9ed1e3c07674d" released="2010-11-08" version="0.1.4">
+    <manifest-digest sha256="7948ec7a53d5b1df9d67c803cc73989d312de63259f9afbe2b3136c96ab4ac42"/>
+    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.4.tgz" size="2584"/>
+  </implementation>
 	</group>
 </interface>
