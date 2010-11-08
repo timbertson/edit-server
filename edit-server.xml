@@ -1,41 +1,51 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <?xml-stylesheet type='text/xsl' href='interface.xsl'?>
-<interface uri="http://gfxmonk.net/dist/0install/edit-server.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface" uri="http://gfxmonk.net/dist/0install/edit-server.xml">
 	<name>edit-server</name>
 	<summary>a server for editing files (locally)</summary>
-	<publish mode="third-party" xmlns="http://gfxmonk.net/dist/0install"/>
+	<publish xmlns="http://gfxmonk.net/dist/0install" mode="third-party"/>
 	<description>
-		An edit server written in python, compatible with TextAid and other similar
-		google chrome extensions. The purpose of which is to edit a browser's
-		textarea in an external text editor (like vim, emacs, etc...)
+An edit server written in python, compatible with TextAid and other similar
+google chrome extensions. The purpose of which is to edit a browser's
+textarea in an external text editor (like vim, emacs, etc...)
 
-		Runs on port 9292, or whatever you set in $EDIT_SERVER_PORT.
-		Listens on the local interface only.
-		Deletes files after $EDIT_SERVER_DELAY minutes (defaults 5 to give you a chance
-		to recover from failures, set to 0 if you're paranoid).
-		Editor command is defaulted to `gvim -f`, but will use ARGV instead
-		if you give it any arguments.
+Runs on port 9292, or whatever port you pass in (see --help)
+Listens on the local interface only.
+Editor command is defaulted to `gvim -f`, but will use ARGV instead
+if you give it any (non-optional) arguments.
+
+Incremental file editing:
+-------------------------
+Supports incremental editing, which requires a version of the chrome plugin
+released after 2010-10-24. If you find your textareas never update after the
+first time you save the file in your editor, your version is too old. You can
+use --no-incremental to revert to the old behaviour.
+
+[Tech details]
+The incremental editing uses two HTTP headers, "x-file" and "x-open".
+"x-open: true" means the editor has not finished, and another request should be made
+immediately. "x-file: FILENAME" (returned from the server) provides the value to be
+provided as the "x-file" request header for the subsequent request.
+if "x-file" is not "true", the editing has finished and no more requests should be
+made.
 	</description>
-
 	<homepage>http://github.com/gfxmonk/edit-server</homepage>
-
 	<group main="edit-server">
 		<implementation id="sha1new=d151a7559b9bd82000064093cf3cde0747ae2c29" released="2010-09-24" version="0.1">
-		
-    <manifest-digest sha256="fae28c511aabccb8b41cddcab6b8b478011b3289a103f375e08cb59cef6079ed"/>
-    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.tgz" size="1744"/>
-  </implementation>
+			<manifest-digest sha256="fae28c511aabccb8b41cddcab6b8b478011b3289a103f375e08cb59cef6079ed"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.tgz" size="1744"/>
+		</implementation>
 		<implementation id="sha1new=77b7e37f3ee250f226af3dcdfcdefc9a601ae460" released="2010-09-24" version="0.1.1">
-    <manifest-digest sha256="13a6afec08e093bfd89c9f7c591d6dac57df7f5f36c06b275fc22e3baf2d4471"/>
-    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.1.tgz" size="1744"/>
-  </implementation>
+			<manifest-digest sha256="13a6afec08e093bfd89c9f7c591d6dac57df7f5f36c06b275fc22e3baf2d4471"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.1.tgz" size="1744"/>
+		</implementation>
 		<implementation id="sha1new=19613f59b7b196896a9c3356ac1f0101f19694b5" released="2010-09-26" version="0.1.2">
-    <manifest-digest sha256="3f0c1bbe91fec36fa961f2dc948499e10e4c39cf4a959634a304eb4c7e82bc60"/>
-    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.2.tgz" size="1887"/>
-  </implementation>
+			<manifest-digest sha256="3f0c1bbe91fec36fa961f2dc948499e10e4c39cf4a959634a304eb4c7e82bc60"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.2.tgz" size="1887"/>
+		</implementation>
 		<implementation id="sha1new=1d575871aec4e93dc3e89358477f2d0e5ac480fc" released="2010-09-30" version="0.1.3">
-    <manifest-digest sha256="213634352f1a69782840d82205372c27163e8212642eca9013898f9dda77a841"/>
-    <archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.3.tgz" size="1922"/>
-  </implementation>
+			<manifest-digest sha256="213634352f1a69782840d82205372c27163e8212642eca9013898f9dda77a841"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.3.tgz" size="1922"/>
+		</implementation>
 	</group>
 </interface>

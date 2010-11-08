@@ -20,6 +20,8 @@ import cgi, urlparse
 import subprocess
 import tempfile, time
 import os, sys, re
+import stat
+from optparse import OptionParser
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import threading
@@ -28,11 +30,63 @@ import time
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s [%(threadName)s@%(asctime)s]")
 
 open_cmd = ['gvim', '-f']
-delay_in_minutes = 5
 os.environ['FROM_EDIT_SERVER'] = 'true'
+
+processes = {}
+INCREMENTAL = True
+delay_in_minutes = 5
 
 class HttpError(RuntimeError):
 	pass
+
+class Editor(object):
+	def __init__(self, filename, process):
+		self.process = process
+		self.returncode = None
+		self.filename = filename
+	
+	@property
+	def still_open(self):
+		return self.returncode is None
+	
+	@property
+	def success(self):
+		return self.still_open or self.returncode == 0
+	
+	@property
+	def finished(self):
+		return self.returncode is not None
+
+	@property
+	def error(self):
+		if self.returncode > 0:
+			return 'text editor returned %d' % self.returncode
+		elif self.returncode < 0:
+			return 'text editor died on signal %d' % -(self.returncode)
+	
+	@property
+	def contents(self):
+		with open(self.filename, 'r') as f:
+			return f.read()
+
+	def wait_for_edit(self):
+		if not INCREMENTAL:
+			self.returncode = self.process.wait()
+			del processes[self.filename]
+			return
+		last_mod_time = os.stat(self.filename)[stat.ST_MTIME]
+		while (True):
+			time.sleep(1)
+			self.returncode = self.process.poll()
+			if self.finished:
+				del processes[self.filename]
+				return
+			mod_time = os.stat(self.filename)[stat.ST_MTIME]
+			if mod_time != last_mod_time:
+				logging.info("new mod time: %s, last: %s" % (mod_time, last_mod_time))
+				last_mod_time = mod_time
+				return
+
 
 class Handler(BaseHTTPRequestHandler):
 	def do_GET(self):
@@ -44,35 +98,38 @@ class Handler(BaseHTTPRequestHandler):
 				return
 		self.send_error(404, "GET Not Found: %s" % self.path)
 
-	def _make_temp_file(self, contents):
-		prefix = "chrome_"
-		f = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix='.txt')
-		fname = f.name
-		f.write(contents)
-		f.close()
-		return fname
-
-	def _wait_for_edited_contents(self, filename):
-		# spawn editor...
-		logging.info("Spawning editor... %s" % (filename,))
-		p = subprocess.Popen(open_cmd + [filename], close_fds=True)
-
-		# hold connection open until editor finishes
-		retcode = p.wait()
-		success = retcode == 0
-
-		if success:
-			with open(filename, 'r') as f:
-				return f.read()
+	def _get_editor(self, contents):
+		logging.debug("processes: %r" % (processes,))
+		filename = self.headers.getheader("x-file")
+		if filename in ('undefined', 'null'): filename = None # that's not very pythonic, is it chaps?
+		if filename is not None:
+			logging.debug("reusing editor for file: %s" % (filename,))
+			process = processes[filename]
 		else:
-			if rc > 0:
-				msg = 'text editor returned %d' % rc
-			elif rc < 0:
-				msg = 'text editor died on signal %d' % -rc
-			raise HttpError(404, msg)
+			prefix = "chrome_"
+			f = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix='.txt')
+			filename = f.name
+			f.write(contents)
+			f.close()
+			# spawn editor...
+			logging.info("Spawning editor... %s" % (filename,))
+			process = subprocess.Popen(open_cmd + [filename], close_fds=True)
+			processes[filename] = process
+		return Editor(filename, process)
 	
-	def _respond(self, contents):
+	def _wait_for_edited_contents(self, editor):
+		editor.wait_for_edit()
+
+		if editor.success:
+			return editor.contents
+		else:
+			raise HttpError(404, editor.error)
+	
+	def _respond(self, contents, editor):
 		self.send_response(200)
+		self.send_header('x-open', str(editor.still_open).lower())
+		if editor.still_open:
+			self.send_header('x-file', editor.filename)
 		self.end_headers()
 		self.wfile.write(contents)
 
@@ -91,6 +148,8 @@ class Handler(BaseHTTPRequestHandler):
 
 	def do_POST(self):
 		try:
+			logging.info(" --- new request --- ")
+			logging.debug("there are %s active editors" % (len(processes),))
 			content_length = self.headers.getheader('content-length')
 			if content_length is None:
 				self.send_response(411)
@@ -98,14 +157,15 @@ class Handler(BaseHTTPRequestHandler):
 				return
 			content_length = int(content_length)
 			body = self.rfile.read(content_length)
-			filename = self._make_temp_file(body)
-			contents = self._wait_for_edited_contents(filename)
-			self._respond(contents)
-			self._delayed_remove(filename)
+			editor = self._get_editor(body)
+			contents = self._wait_for_edited_contents(editor)
+			self._respond(contents=contents, editor=editor)
+			if editor.finished:
+				self._delayed_remove(editor.filename)
 		except HttpError, e:
 			self.send_error(*e.args)
 		except Exception, e:
-			logging.error("Error: %s" % (e,))
+			logging.exception("%s: %s" % (type(e).__name__, e,))
 			self.send_error(404, "Not Found: %s" % self.path)
 		logging.debug("POST complete")
 
@@ -113,10 +173,19 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	pass
 
 def main():
-	global delay_in_minutes
+	global delay_in_minutes, INCREMENTAL, open_cmd
 	try:
-		port = int(os.environ.get('EDIT_SERVER_PORT', 9292))
-		delay_in_minutes = float(os.environ.get('EDIT_SERVER_DELAY', 5))
+		parser = OptionParser("usage: %prog [OPTIONS] <edit-cmd>")
+		parser.add_option("-p", "--port", default=9292, type="int")
+		parser.add_option("-d", "--delay", help="delay (in minutes) before deleting unused files", default=5)
+		parser.add_option("--no-incremental", help="disable incremental edits (a request will block until editor is finished)", default=True, dest='incremental', action='store_false')
+		opts, args = parser.parse_args()
+		port = opts.port
+		delay_in_minutes = opts.delay
+		INCREMENTAL = opts.incremental
+		if args:
+			open_cmd = args
+
 		httpserv = ThreadedHTTPServer(('localhost', int(port)), Handler)
 		httpserv.table = {}
 		logging.info('edit-server started on port %s' % (port,))
@@ -125,9 +194,6 @@ def main():
 		httpserv.socket.close()
 
 if __name__ == '__main__':
-	args = sys.argv[1:]
-	if args:
-		open_cmd = args
 	main()
 
 
