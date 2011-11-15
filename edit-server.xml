@@ -31,6 +31,7 @@ made.
 	<homepage>http://github.com/gfxmonk/edit-server</homepage>
 	<group main="edit-server">
 		<environment insert="xdg/config" mode="prepend" name="XDG_CONFIG_DIRS"/>
+		<environment insert="" mode="prepend" name="PATH"/>
 		<implementation id="sha1new=d151a7559b9bd82000064093cf3cde0747ae2c29" released="2010-09-24" version="0.1">
 			<manifest-digest sha256="fae28c511aabccb8b41cddcab6b8b478011b3289a103f375e08cb59cef6079ed"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.tgz" size="1744"/>
@@ -54,6 +55,22 @@ made.
 		<implementation id="sha1new=894e9a231efc75fd72d0f677eb0b1d4efd5a2e27" released="2011-08-10" version="0.1.5">
 			<manifest-digest sha256="71514e0747aba48b3c5043e0dd0c9a2836e57693123d86d804911e2037071e63"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.5.tgz" size="2934"/>
+		</implementation>
+	</group>
+	<group main="edit-server">
+		<environment insert="xdg/config" mode="prepend" name="XDG_CONFIG_DIRS"/>
+		<environment insert="" mode="prepend" name="PATH"/>
+		<command name="run" path="edit-server"/>
+		<command name="ctl" path="edit-server">
+			<runner interface="http://gfxmonk.net/dist/0install/simple-daemon.xml">
+				<arg>--pidfile</arg>
+				<arg>/tmp/edit-server.pid</arg>
+				<arg>-e</arg>
+			</runner>
+		</command>
+		<implementation id="sha1new=3c9bdb490a636ad7d3c01eb6e4a6c27e87687de8" released="2011-11-14" version="0.1.6">
+			<manifest-digest sha256="6fb76a416c3b99f0f8535e36548c6021a4316a03703a1841f66f6fa0850ee1ca"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.6.tgz" size="3399"/>
 		</implementation>
 	</group>
 </interface>
