@@ -72,5 +72,9 @@ made.
 			<manifest-digest sha256="6fb76a416c3b99f0f8535e36548c6021a4316a03703a1841f66f6fa0850ee1ca"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.6.tgz" size="3399"/>
 		</implementation>
+		<implementation id="sha1new=ae3ad7ca11dfbbeff251b3143bc1e4b7d101c187" released="2012-05-15" version="0.1.7">
+			<manifest-digest sha256="79ccfce1386564ef89f9809867f4abb0b83fa1b6f46eb08c4d64b1d48c6b3314"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.1.7.tgz" size="3300"/>
+		</implementation>
 	</group>
 </interface>
