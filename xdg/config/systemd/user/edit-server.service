@@ -4,7 +4,5 @@ Description=Edit Server
 [Service]
 ExecStart=/usr/bin/env 0launch -c http://gfxmonk.net/dist/0install/edit-server.xml
 Restart=always
-
-[Install]
-WantedBy=default.target
-
+StandardOutput=syslog
+StandardError=syslog

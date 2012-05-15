@@ -21,6 +21,7 @@ import subprocess
 import tempfile, time
 import os, sys, re
 import stat
+import socket
 from optparse import OptionParser
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
@@ -35,6 +36,7 @@ os.environ['FROM_EDIT_SERVER'] = 'true'
 processes = {}
 INCREMENTAL = True
 delay_in_minutes = 5
+SYSTEMD_FIRST_SOCKET_FD = 3
 
 class HttpError(RuntimeError):
 	pass
@@ -172,6 +174,15 @@ class Handler(BaseHTTPRequestHandler):
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 	pass
 
+class SocketInheritingHTTPServer(ThreadedHTTPServer):
+	"""A HttpServer subclass that takes over an inherited socket from systemd"""
+	def __init__(self, address_info, handler, fd, bind_and_activate=True):
+		ThreadedHTTPServer.__init__(self, address_info, handler, bind_and_activate=False)
+		self.socket = socket.fromfd(fd, self.address_family, self.socket_type)
+		if bind_and_activate:
+			# NOTE: systemd provides ready-bound sockets, so we only need to activate:
+			self.server_activate()
+
 def main():
 	global delay_in_minutes, INCREMENTAL, open_cmd
 	try:
@@ -186,9 +197,15 @@ def main():
 		if args:
 			open_cmd = args
 
-		httpserv = ThreadedHTTPServer(('localhost', int(port)), Handler)
+		logging.info('edit-server PID is %s' % (os.getpid(),))
+		server_args = [('localhost', int(port)), Handler]
+		if os.environ.get('LISTEN_PID', None) == str(os.getpid()):
+			httpserv = SocketInheritingHTTPServer(*server_args, fd=SYSTEMD_FIRST_SOCKET_FD)
+			logging.info('edit-server started on socket fd %s' % (SYSTEMD_FIRST_SOCKET_FD,))
+		else:
+			httpserv = ThreadedHTTPServer(*server_args)
+			logging.info('edit-server started on port %s' % (port,))
 		httpserv.table = {}
-		logging.info('edit-server started on port %s' % (port,))
 		httpserv.serve_forever()
 	except KeyboardInterrupt:
 		httpserv.socket.close()

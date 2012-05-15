@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+# this script simulates what I believe systemd does when passing a socket over
+# to a socket-activated service, which is useful in debugging issues.
+
+import socket, os
+HOST = 'localhost'
+PORT = 9292
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((HOST, PORT))
+# Note that we don't call s.listen() as normal
+fd = s.fileno()
+os.dup2(fd, 3) # systemd starts passing fds at 3
+pid = os.fork()
+if pid == 0: # child
+	pid = os.getpid()
+	print "child pid = %s" % pid
+	os.environ['LISTEN_PID'] = str(pid)
+	os.execv(os.path.join(os.path.dirname(__file__), 'edit-server'), ['edit-server'])
+
+ret = os.waitpid(pid, 0)
+print "child returned %s" % (ret,)
+

@@ -1,0 +1,9 @@
+[Unit]
+Description=Edit Server
+
+[Socket]
+ListenStream=9292
+
+[Install]
+WantedBy=default.target
+
