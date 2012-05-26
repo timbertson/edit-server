@@ -21,6 +21,7 @@ import subprocess
 import tempfile, time
 import os, sys, re
 import stat
+import shlex
 import socket
 from optparse import OptionParser
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -30,7 +31,7 @@ import logging
 import time
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s [%(threadName)s@%(asctime)s]")
 
-open_cmd = ['gvim', '-f']
+open_cmd = shlex.split(os.environ.get('EDIT_SERVER_EDITOR', 'gvim -f'), comments=False)
 os.environ['FROM_EDIT_SERVER'] = 'true'
 
 processes = {}
