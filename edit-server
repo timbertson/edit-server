@@ -38,6 +38,7 @@ processes = {}
 INCREMENTAL = True
 delay_in_minutes = 5
 SYSTEMD_FIRST_SOCKET_FD = 3
+TEMP_DIR = None
 
 class HttpError(RuntimeError):
 	pass
@@ -110,7 +111,7 @@ class Handler(BaseHTTPRequestHandler):
 			process = processes[filename]
 		else:
 			prefix = "chrome_"
-			f = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix='.txt')
+			f = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix='.txt', dir=TEMP_DIR)
 			filename = f.name
 			f.write(contents)
 			f.close()
@@ -185,16 +186,18 @@ class SocketInheritingHTTPServer(ThreadedHTTPServer):
 			self.server_activate()
 
 def main():
-	global delay_in_minutes, INCREMENTAL, open_cmd
+	global delay_in_minutes, INCREMENTAL, open_cmd, TEMP_DIR
 	try:
 		parser = OptionParser("usage: %prog [OPTIONS] <edit-cmd>")
 		parser.add_option("-p", "--port", default=9292, type="int")
 		parser.add_option("-d", "--delay", help="delay (in minutes) before deleting unused files", default=5)
+		parser.add_option("--tempdir", default=os.environ.get("EDIT_SERVER_TEMP", None), help="location of temporary files (defaults to /tmp, or $EDIT_SERVER_TEMP if defined)")
 		parser.add_option("--no-incremental", help="disable incremental edits (a request will block until editor is finished)", default=True, dest='incremental', action='store_false')
 		opts, args = parser.parse_args()
 		port = opts.port
 		delay_in_minutes = opts.delay
 		INCREMENTAL = opts.incremental
+		TEMP_DIR = opts.tempdir
 		if args:
 			open_cmd = args
 
