@@ -116,8 +116,9 @@ class Handler(BaseHTTPRequestHandler):
 			f.write(contents)
 			f.close()
 			# spawn editor...
-			logging.info("Spawning editor... %s" % (filename,))
-			process = subprocess.Popen(open_cmd + [filename], close_fds=True)
+			cmd = open_cmd + [filename]
+			logging.info("Spawning editor: %r" % (cmd,))
+			process = subprocess.Popen(cmd, close_fds=True)
 			processes[filename] = process
 		return Editor(filename, process)
 	
