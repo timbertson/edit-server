@@ -1,4 +1,4 @@
 0:
-	mkzero-gfxmonk -p edit-server -p xdg edit-server.xml
+	mkzero-gfxmonk -p edit-server -p xdg -p edit_server edit-server.xml
 
 .PHONY: 0
