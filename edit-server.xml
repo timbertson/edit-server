@@ -82,13 +82,13 @@ made.
 		</implementation>
 	</group>
 	<group main="edit-server">
-		<requires interface="http://gfxmonk.net/dist/0install/python-env-importer.xml" importance="recommended"/>
-		<requires interface="http://gfxmonk.net/dist/0install/python-html2text.xml" importance="recommended"/>
+		<requires interface="http://gfxmonk.net/dist/0install/python-env-importer.xml"/>
+		<requires interface="http://gfxmonk.net/dist/0install/python-html2text.xml"/>
 		<requires interface="http://repo.roscidus.com/python/python">
 			<version before="3"/>
 		</requires>
 		<environment insert="xdg/config" mode="prepend" name="XDG_CONFIG_DIRS"/>
-		<environment value="edit_server.filters/GmailFilter" mode="prepend" name="EDIT_SERVER_FILTERS"/>
+		<environment mode="prepend" name="EDIT_SERVER_FILTERS" value="edit_server.filters/GmailFilter"/>
 		<environment insert="" mode="prepend" name="PATH"/>
 		<command name="run" path="edit-server">
 			<runner interface="http://repo.roscidus.com/python/python"/>
@@ -103,6 +103,9 @@ made.
 				<arg>-e</arg>
 			</runner>
 		</command>
-		<implementation id="." version="0.2-pre"/>
+		<implementation id="sha1new=6aeff2002dd63c1a6da12188e9ba2a07505bf9c0" released="2013-03-29" version="0.2">
+			<manifest-digest sha256new="VXHKBMBURUQYJ274WUYKB5XBNIMFWKNYMKWSIUC22EXCYE4BQ7HQ"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.2.tgz" size="5284"/>
+		</implementation>
 	</group>
 </interface>
