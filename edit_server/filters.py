@@ -15,7 +15,7 @@ class GmailFilter(object):
 			return GmailCodec()
 
 class GmailCodec(object):
-	'''
+	r'''
 	Converts a (tiny) subset of HTML -> text and back.
 	Empirically this should be enough to edit "plain text" in gmail's new compose window,
 	but it's somewhat fragile.
@@ -49,6 +49,23 @@ class GmailCodec(object):
 	
 	>>> print c.encode(c.decode('&lt;<foo x="1">foo!</foo>'))
 	&lt;<foo x="1">foo!</foo>
+
+	Entities:
+
+	>>> print repr(c.decode(" &nbsp;"))
+	'  '
+	>>> print repr(c.encode(c.decode(" &nbsp;")))
+	'&nbsp; '
+
+	Tabs:
+
+	>>> print repr(c.encode('\t'))
+	'&nbsp;&nbsp;&nbsp; '
+
+	Spacing:
+
+	>>> print c.encode('>    1')
+	&gt; &nbsp;&nbsp; 1
 	'''
 
 	logger = logging.getLogger(__name__ + '.GmailCodec')
@@ -76,10 +93,17 @@ class GmailCodec(object):
 		# < and > that are still present need to be distinguishable from actual entities that get decoded to < and >
 		content = re.sub('(<|>)', r'_!!\1', content)
 		content = html2text.unescape(content)
+		content = content.replace('&nbsp_place_holder;', ' ')
 		return content
 
 	def encode(self, content):
+		content = content.replace("\t", "    ")
 		content = cgi.escape(content)
 		content = content.replace('_!!&lt;', '<').replace('_!!&gt;', '>')
+		def encode_spaces(s):
+			extra_spaces = len(s.group(0)) - 1
+			nbsp = '&nbsp;'
+			return (nbsp * extra_spaces) + ' '
+		content = re.sub('  +', encode_spaces, content)
 		content = self._replace(content, self.replace_text)
 		return content

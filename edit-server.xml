@@ -103,6 +103,12 @@ made.
 				<arg>-e</arg>
 			</runner>
 		</command>
+		<command name="test">
+			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml">
+				<arg>--with-doctest</arg>
+				<arg>--exe</arg>
+			</runner>
+		</command>
 		<implementation id="sha1new=6aeff2002dd63c1a6da12188e9ba2a07505bf9c0" released="2013-03-29" version="0.2">
 			<manifest-digest sha256new="VXHKBMBURUQYJ274WUYKB5XBNIMFWKNYMKWSIUC22EXCYE4BQ7HQ"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.2.tgz" size="5284"/>
