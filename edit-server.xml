@@ -113,5 +113,9 @@ made.
 			<manifest-digest sha256new="VXHKBMBURUQYJ274WUYKB5XBNIMFWKNYMKWSIUC22EXCYE4BQ7HQ"/>
 			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.2.tgz" size="5284"/>
 		</implementation>
+		<implementation id="sha1new=ee38386f6ac2e377c3c0d3276f84c29803d55903" released="2013-04-03" version="0.2.1">
+			<manifest-digest sha256new="5C3VZG6GTILH7CU7X4H3S5E2UDIGZZ6SAVKGW3ED5RE66FXBQFMQ"/>
+			<archive href="http://gfxmonk.net/dist/0install/edit-server/edit-server-0.2.1.tgz" size="10814"/>
+		</implementation>
 	</group>
 </interface>
