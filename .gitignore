@@ -1,3 +1,6 @@
 *.pyc
 __pycache__
-0inst
+/0inst
+/gup
+/dist
+/*-local.xml

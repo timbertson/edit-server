@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+	<name>edit-server</name>
+	<summary>a server for editing files (locally)</summary>
+	<feed-for interface="http://gfxmonk.net/dist/0install/edit-server.xml"/>
+	<description>
+An edit server written in python, compatible with TextAid and other similar
+google chrome extensions. The purpose of which is to edit a browser's
+textarea in an external text editor (like vim, emacs, etc...)
+
+Runs on port 9292, or whatever port you pass in (see --help)
+Listens on the local interface only.
+Editor command is defaulted to `gvim -f`, but will use ARGV instead
+if you give it any (non-optional) arguments.
+
+Incremental file editing:
+-------------------------
+Supports incremental editing, which requires a version of the chrome plugin
+released after 2010-10-24. If you find your textareas never update after the
+first time you save the file in your editor, your version is too old. You can
+use --no-incremental to revert to the old behaviour.
+
+[Tech details]
+The incremental editing uses two HTTP headers, "x-file" and "x-open".
+"x-open: true" means the editor has not finished, and another request should be made
+immediately. "x-file: FILENAME" (returned from the server) provides the value to be
+provided as the "x-file" request header for the subsequent request.
+if "x-file" is not "true", the editing has finished and no more requests should be
+made.
+	</description>
+	<homepage>http://github.com/gfxmonk/edit-server</homepage>
+	<group main="edit-server">
+		<requires interface="http://gfxmonk.net/dist/0install/python-env-importer.xml"/>
+		<requires interface="http://gfxmonk.net/dist/0install/python-html2text.xml"/>
+		<requires interface="http://repo.roscidus.com/python/python"/>
+		<environment mode="prepend" name="EDIT_SERVER_FILTERS" value="edit_server.filters/GmailFilter"/>
+		<environment insert="" mode="prepend" name="PATH"/>
+
+		<command name="systemd-unit" path="edit-server">
+			<environment insert="xdg/config" mode="prepend" name="XDG_CONFIG_DIRS"/>
+			<runner interface="http://repo.roscidus.com/python/python"/>
+		</command>
+
+		<command name="run" path="edit-server">
+			<runner interface="http://repo.roscidus.com/python/python"/>
+		</command>
+		<command name="ctl" path="edit-server">
+			<requires interface="http://repo.roscidus.com/python/python">
+				<executable-in-path name="python"/>
+			</requires>
+			<runner interface="http://gfxmonk.net/dist/0install/simple-daemon.xml">
+				<arg>--pidfile</arg>
+				<arg>/tmp/edit-server.pid</arg>
+				<arg>-e</arg>
+			</runner>
+		</command>
+		<command name="test">
+			<runner interface="http://gfxmonk.net/dist/0install/nosetests-runner.xml">
+				<arg>--with-doctest</arg>
+				<arg>--exe</arg>
+			</runner>
+		</command>
+		<implementation version="{version}">
+			<manifest-digest/>
+			<archive href="{archive}"/>
+		</implementation>
+	</group>
+</interface>
