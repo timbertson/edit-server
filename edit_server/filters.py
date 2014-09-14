@@ -1,13 +1,19 @@
-from urlparse import urlparse
+from __future__ import print_function
 import logging
 import html2text
 import re
 import cgi
+try:
+	# py3
+	from urllib.parse import urlparse
+except ImportError:
+	# py2
+	from urlparse import urlparse
 
 class GmailFilter(object):
 	logger = logging.getLogger(__name__ + '.GmailFilter')
 	def match(self, headers, contents):
-		url = headers.getheader('x-url', None)
+		url = headers.get('x-url', None)
 		if url is None: return
 		url = urlparse(url)
 		self.logger.debug("text is from URL: %s" % (url,))
@@ -28,7 +34,7 @@ class GmailCodec(object):
 	...            "EOF</div>")
 
 	>>> plaintext = c.decode(content)
-	>>> print plaintext
+	>>> print(plaintext)
 	3
 	<BLANKLINE>
 	<BLANKLINE>
@@ -41,31 +47,31 @@ class GmailCodec(object):
 	0
 	EOF
 	>>> html = c.encode(plaintext)
-	>>> print html
+	>>> print(html)
 	3<br><br><br><br>2<br><br><br>1<br><br>0<br>EOF
 
 
 	Also, for entities and preserving of unknown tags:
 	
-	>>> print c.encode(c.decode('&lt;<foo x="1">foo!</foo>'))
+	>>> print(c.encode(c.decode('&lt;<foo x="1">foo!</foo>')))
 	&lt;<foo x="1">foo!</foo>
 
 	Entities:
 
-	>>> print repr(c.decode(" &nbsp;"))
+	>>> print(repr(c.decode(" &nbsp;")))
 	'  '
-	>>> print repr(c.encode(c.decode(" &nbsp;")))
+	>>> print(repr(c.encode(c.decode(" &nbsp;"))))
 	'&nbsp; '
 
 	Tabs:
 
-	>>> print repr(c.encode('\t'))
+	>>> print(repr(c.encode('\t')))
 	'&nbsp;&nbsp;&nbsp; '
 
 	Spacing:
 
-	>>> print c.encode('>    1')
-	&gt; &nbsp;&nbsp; 1
+	>>> print(c.encode('>    1'))
+	&gt;&nbsp;&nbsp;&nbsp; 1
 	'''
 
 	logger = logging.getLogger(__name__ + '.GmailCodec')

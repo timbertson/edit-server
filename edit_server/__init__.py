@@ -8,7 +8,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -17,20 +17,29 @@
 #
 
 from __future__ import absolute_import, print_function
-import cgi, urlparse
-import urllib
 import subprocess
-import tempfile, time
-import os, sys, re
+import tempfile
+import time
+import os
+import sys
+import re
 import stat
 import shlex
 import socket
-from optparse import OptionParser
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from SocketServer import ThreadingMixIn
 import threading
 import logging
-import time
+from optparse import OptionParser
+
+try:
+	# py3
+	from urllib.parse import quote_plus
+	from http.server import BaseHTTPRequestHandler, HTTPServer
+	from socketserver import ThreadingMixIn
+except ImportError:
+	# py2
+	from urllib import quote_plus
+	from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+	from SocketServer import ThreadingMixIn
 
 logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s [%(threadName)s@%(asctime)s]")
 
@@ -55,7 +64,7 @@ class Editor(object):
 		self.prefix = "chrome_"
 
 		if url:
-			self.prefix += '%%' + urllib.quote_plus(url) + '%%'
+			self.prefix += '%%' + quote_plus(url) + '%%'
 
 		self._spawn(contents)
 	
@@ -178,7 +187,7 @@ class Handler(BaseHTTPRequestHandler):
 
 	def _get_editor(self, contents, headers):
 		logging.debug("EDITORS: %r" % (EDITORS,))
-		filename = self.headers.getheader("x-file")
+		filename = self.headers.get("x-file")
 		if filename in ('undefined', 'null'): filename = None # that's not very pythonic, is it chaps?
 		editor = None
 
@@ -190,7 +199,7 @@ class Handler(BaseHTTPRequestHandler):
 
 		if editor is None:
 			filter = FILTERS.get_first(headers, contents)
-			editor = Editor(contents, filter=filter, url=headers.getheader('x-url'))
+			editor = Editor(contents, filter=filter, url=headers.get('x-url'))
 			EDITORS[editor.filename] = editor
 		return editor
 	
@@ -208,7 +217,7 @@ class Handler(BaseHTTPRequestHandler):
 		if editor.still_open:
 			self.send_header('x-file', editor.filename)
 		self.end_headers()
-		self.wfile.write(contents)
+		self.wfile.write(contents.encode('utf-8'))
 
 	def _delayed_remove(self, filename):
 		def delayed_remove():
@@ -217,7 +226,7 @@ class Handler(BaseHTTPRequestHandler):
 			logging.debug("removing file: %s" % (filename,))
 			try:
 				os.unlink(filename)
-			except :
+			except Exception:
 				logging.error("Unable to unlink: %s" % (filename, ))
 		thread = threading.Thread(target=delayed_remove)
 		thread.daemon = True
@@ -226,9 +235,9 @@ class Handler(BaseHTTPRequestHandler):
 	def do_POST(self):
 		try:
 			logging.info(" --- new request --- ")
-			logging.debug("Headers:\n%s", "   ".join(self.headers.headers))
+			logging.debug("Headers:\n%s", self.headers)
 			logging.debug("there are %s active editors" % (len(EDITORS),))
-			content_length = self.headers.getheader('content-length')
+			content_length = self.headers.get('content-length')
 			if content_length is None:
 				self.send_response(411)
 				self.end_headers()
@@ -240,10 +249,10 @@ class Handler(BaseHTTPRequestHandler):
 			self._respond(contents=contents, editor=editor)
 			if editor.finished:
 				self._delayed_remove(editor.filename)
-		except HttpError, e:
+		except HttpError as e:
 			self.send_error(*e.args)
-		except Exception, e:
-			logging.exception("%s: %s" % (type(e).__name__, e,))
+		except Exception:
+			logging.exception("Unhandled exception")
 			self.send_error(404, "Not Found: %s" % self.path)
 		logging.debug("POST complete")
 
@@ -253,7 +262,11 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 class SocketInheritingHTTPServer(ThreadedHTTPServer):
 	"""A HttpServer subclass that takes over an inherited socket from systemd"""
 	def __init__(self, address_info, handler, fd, bind_and_activate=True):
-		ThreadedHTTPServer.__init__(self, address_info, handler, bind_and_activate=False)
+		super(SocketInheritingHTTPServer, self).__init__(
+			address_info,
+			handler,
+			bind_and_activate=False
+		)
 		self.socket = socket.fromfd(fd, self.address_family, self.socket_type)
 		if bind_and_activate:
 			# NOTE: systemd provides ready-bound sockets, so we only need to activate:
@@ -292,4 +305,3 @@ def main():
 		httpserv.serve_forever()
 	except KeyboardInterrupt:
 		httpserv.socket.close()
-
