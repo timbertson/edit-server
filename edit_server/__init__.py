@@ -18,6 +18,7 @@
 
 from __future__ import absolute_import, print_function
 import cgi, urlparse
+import urllib
 import subprocess
 import tempfile, time
 import os, sys, re
@@ -48,10 +49,14 @@ class HttpError(RuntimeError):
 	pass
 
 class Editor(object):
-	def __init__(self, contents, filter=None):
+	def __init__(self, contents, filter=None, url=None):
 		logging.info("Editor using filter: %r", filter)
 		self.filter = filter
 		self.prefix = "chrome_"
+
+		if url:
+			self.prefix += '%%' + urllib.quote_plus(url) + '%%'
+
 		self._spawn(contents)
 	
 	def _spawn(self, contents):
@@ -185,7 +190,7 @@ class Handler(BaseHTTPRequestHandler):
 
 		if editor is None:
 			filter = FILTERS.get_first(headers, contents)
-			editor = Editor(contents, filter)
+			editor = Editor(contents, filter=filter, url=headers.getheader('x-url'))
 			EDITORS[editor.filename] = editor
 		return editor
 	
