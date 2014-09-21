@@ -36,12 +36,10 @@ made.
 		<requires interface="http://repo.roscidus.com/python/python"/>
 		<environment mode="prepend" name="EDIT_SERVER_FILTERS" value="edit_server.filters/GmailFilter"/>
 		<environment insert="" mode="prepend" name="PATH"/>
-
 		<command name="systemd-unit" path="edit-server">
 			<environment insert="xdg/config" mode="prepend" name="XDG_CONFIG_DIRS"/>
 			<runner interface="http://repo.roscidus.com/python/python"/>
 		</command>
-
 		<command name="run" path="edit-server">
 			<runner interface="http://repo.roscidus.com/python/python"/>
 		</command>
